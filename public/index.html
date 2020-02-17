@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+ ! Excerpted from "Serverless Single Page Apps",
+ ! published by The Pragmatic Bookshelf.
+ ! Copyrights apply to this code. It may not be used to create training material,
+ ! courses, books, articles, and the like. Contact us if you are in doubt.
+ ! We make no guarantees that this code is fit for any purpose.
+ ! Visit http://www.pragmaticprogrammer.com/titles/brapps for more book information.
+-->
 <html>
 
 <head>
@@ -72,21 +80,30 @@
       font-size: 32px;
     }
   </style>
+  </style>
+  <meta name="google-signin-client_id"
+    content="351607165455-uesp1702cesp44vbn539m7rm6gg5ov3h.apps.googleusercontent.com">
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
 </head>
 
 <body>
   <div class='markup'>
     <div class='nav-container no-select fixed-top u-full-width'>
-      <ui class='inline-list hover-links nav-list six columns'>
+      <ul class='inline-list hover-links nav-list six columns'>
         <li><a class='text-lg' href="#">LearnJS</a></li>
         <li><a href="#problem-1">Start</a></li>
-      </ui>
+      </ul>
+      <div class='four columns'>
+        <span class='navbar-padding u-pull-right'>
+          <span class="g-signin2" data-onsuccess="googleSignIn"></span>
+        </span>
+      </div>
     </div>
     <div class='view-container container'>
     </div>
     <div class='templates'>
-
       <div class='landing-view'>
+        <!-- Markup Continues... -->
         <div class='row'>
           <div class='one-half column'>
             <h3>Learn JavaScript, one puzzle at a time.</h3>
@@ -98,12 +115,17 @@
         </div>
       </div>
 
+      <div class='profile-view'>
+        <h3>Your Profile</h3>
+        <div class='email'></div>
+      </div>
+
       <div class='problem-view'>
         <h3 class='title'></h3>
         <p data-name='description'></p>
         <pre><code data-name='code'></code></pre>
         <form>
-          <textarea class='u-full-width answer'></textarea>
+          <textarea class='u-full-width answer fixed-width-text'></textarea>
           <div>
             <button class='button-primary check-btn'>Check Answer</button>
             <p class='result'></p>
@@ -111,16 +133,14 @@
         </form>
       </div>
 
-      <div class='correct-flash'>
-        <span Correct!></span> <a>Next Problem</a>
-      </div>
-
       <li class='skip-btn'>
         <a>Skip This Problem</a>
       </li>
 
+      <div class='correct-flash'>
+        <span>Correct!</span> <a>Next Problem</a>
+      </div>
     </div>
-
   </div>
   <script type='text/javascript'>
     $(window).ready(learnjs.appOnReady);

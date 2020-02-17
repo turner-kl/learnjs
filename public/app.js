@@ -1,17 +1,33 @@
+/***
+ * Excerpted from "Serverless Single Page Apps",
+ * published by The Pragmatic Bookshelf.
+ * Copyrights apply to this code. It may not be used to create training material,
+ * courses, books, articles, and the like. Contact us if you are in doubt.
+ * We make no guarantees that this code is fit for any purpose.
+ * Visit http://www.pragmaticprogrammer.com/titles/brapps for more book information.
+***/
 "use strict";
 
-var learnjs = {};
+var learnjs = {
+    poolId: 'us-east-1:aa0e6d15-02da-4304-a819-f316506257e0'
+};
+
+learnjs.identity = new $.Deferred();
 
 learnjs.problems = [
     {
         description: "What is truth?",
-        code: "function problem() {return __;}"
+        code: "function problem() { return __; }"
     },
     {
         description: "Simple Math",
         code: "function problem() { return 42 === 6 * __; }"
     }
 ];
+
+learnjs.triggerEvent = function (name, args) {
+    $('.view-container>*').trigger(name, args);
+}
 
 learnjs.template = function (name) {
     return $('.templates .' + name).clone();
@@ -30,10 +46,6 @@ learnjs.flashElement = function (elem, content) {
     });
 }
 
-learnjs.triggerEvent = function (name, args) {
-    $('.view-container>*').trigger(name, args);
-}
-
 learnjs.buildCorrectFlash = function (problemNum) {
     var correctFlash = learnjs.template('correct-flash');
     var link = correctFlash.find('a');
@@ -44,10 +56,6 @@ learnjs.buildCorrectFlash = function (problemNum) {
         link.text("You're Finished!");
     }
     return correctFlash;
-}
-
-learnjs.landingView = function () {
-    return learnjs.template('landing-view');
 }
 
 learnjs.problemView = function (data) {
@@ -87,9 +95,22 @@ learnjs.problemView = function (data) {
     return view;
 }
 
+learnjs.landingView = function () {
+    return learnjs.template('landing-view');
+}
+
+learnjs.profileView = function () {
+    var view = learnjs.template('profile-view');
+    learnjs.identity.done(function (identity) {
+        view.find('.email').text(identity.email);
+    });
+    return view;
+}
+
 learnjs.showView = function (hash) {
     var routes = {
         '#problem': learnjs.problemView,
+        '#profile': learnjs.profileView,
         '#': learnjs.landingView,
         '': learnjs.landingView
     };
@@ -106,4 +127,46 @@ learnjs.appOnReady = function () {
         learnjs.showView(window.location.hash);
     };
     learnjs.showView(window.location.hash);
+}
+
+learnjs.awsRefresh = function () {
+    var deferred = new $.Deferred();
+    AWS.config.credentials.refresh(function (err) {
+        if (err) {
+            deferred.reject(err);
+        } else {
+            deferred.resolve(AWS.config.credentials.identityId);
+        }
+    });
+    return deferred.promise();
+}
+
+function googleSignIn(googleUser) {
+    var id_token = googleUser.getAuthResponse().id_token;
+    AWS.config.update({
+        region: 'us-east-1',
+        credentials: new AWS.CognitoIdentityCredentials({
+            IdentityPoolId: learnjs.poolId,
+            Logins: {
+                'accounts.google.com': id_token
+            }
+        })
+    })
+    function refresh() {
+        return gapi.auth2.getAuthInstance().signIn({
+            prompt: 'login'
+        }).then(function (userUpdate) {
+            var creds = AWS.config.credentials;
+            var newToken = userUpdate.getAuthResponse().id_token;
+            creds.params.Logins['accounts.google.com'] = newToken;
+            return learnjs.awsRefresh();
+        });
+    }
+    learnjs.awsRefresh().then(function (id) {
+        learnjs.identity.resolve({
+            id: id,
+            email: googleUser.getBasicProfile().getEmail(),
+            refresh: refresh
+        });
+    });
 }
